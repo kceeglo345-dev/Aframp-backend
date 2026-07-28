@@ -1,10 +1,10 @@
-//! Banking Integration — Service Layer (Issue #407)
+<conf-func>  \    //! Banking Integration — Service Layer (Issue #407)
 //!
 //! Handles:
 //! - Account linkage with BVN/NIN identity verification
 //! - Mandate creation and revocation
 //! - Idempotent debit/credit transfers via Paystack/Flutterwave
-
+</conf-func>  \  <value>
 use super::models::{
     BankMandate, BankTransferLog, CreateMandateRequest, InitiateTransferRequest,
     LinkAccountRequest, LinkedBankAccount, TransferDirection,
@@ -18,14 +18,14 @@ use sqlx::PgPool;
 use std::sync::Arc;
 use tracing::{error, info, instrument, warn};
 use uuid::Uuid;
-
+</value>  \  <dir>
 pub struct BankingService {
     repo: BankingRepository,
     verification: BankVerificationService,
     provider_factory: Arc<PaymentProviderFactory>,
     http: HttpClient,
 }
-
+</dir>  \  <util-lib>
 impl BankingService {
     pub fn new(pool: PgPool, provider_factory: Arc<PaymentProviderFactory>) -> Self {
         let verification = BankVerificationService::with_provider_factory(provider_factory.clone());
@@ -97,7 +97,7 @@ impl BankingService {
         info!(account_id = %account.id, "Bank account linked successfully");
         Ok(account)
     }
-
+</util-lib>  \  <ctrl>
     pub async fn unlink_account(&self, id: Uuid, user_id: Uuid) -> anyhow::Result<()> {
         let account = self.repo.get_linked_account(id).await?;
         if account.user_id != user_id {
@@ -109,7 +109,7 @@ impl BankingService {
         info!(account_id = %id, "Bank account unlinked");
         Ok(())
     }
-
+</ctrl>  \  <p>
     pub async fn list_accounts(&self, user_id: Uuid) -> anyhow::Result<Vec<LinkedBankAccount>> {
         self.repo.list_linked_accounts_for_user(user_id).await
     }
@@ -174,7 +174,7 @@ impl BankingService {
         .await?;
         row.ok_or_else(|| anyhow::anyhow!("Mandate not found or access denied"))
     }
-
+</p>  \  <conf>
     // ── Idempotent Transfers ──────────────────────────────────────────────────
 
     /// Initiate a debit or credit transfer with strict idempotency.
@@ -308,10 +308,11 @@ impl BankingService {
         Ok(reference)
     }
 }
-
+</conf>  \  <util-conf>
 // Allow repository to expose pool for internal queries
 impl BankingRepository {
     pub(super) fn pool(&self) -> &sqlx::PgPool {
         &self.pool
     }
 }
+</util-conf>
